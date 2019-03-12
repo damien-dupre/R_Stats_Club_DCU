@@ -22,3 +22,205 @@ knitr::opts_chunk$set(eval = FALSE)
 Version control is the process to structure the successive evolution of a content (document, code, ...) and enable collaborative principle in order to avoid mistakes and/or unwanted changes.
 
 Version control is the most basic and the most important data science pipeline.
+
+---
+
+```{r, eval = TRUE, echo = FALSE, out.width = "50%"}
+knitr::include_graphics("./img/phdcomics_version_control.gif")
+```
+
+---
+
+# Requirements
+
+Software Installation
+* Base R https://cran.r-project.org/
+* RStudio https://www.rstudio.com/products/rstudio/download/
+* Git https://git-scm.com/downloads
+
+--
+
+Platform Account
+* GitHub https://github.com/
+* Overleaf https://www.overleaf.com/
+
+---
+
+# What are these things?
+
+Base R is the coding language to create you paper/project
+
+RStudio is the working environement
+
+Git is a local folder where all the versions of your paper/project are saved
+
+GitHub is the webserver where all the versions of your paper/project are saved
+
+Overleaf is a collaborative LaTex processing environment
+
+---
+
+# Introduce yourself to Git
+
+```{sh}
+# Change name and email associated with your GitHub account
+git config --global user.name 'Jane Doe'
+git config --global user.email 'jane@example.com'
+git config --global --list
+```
+
+```{r}
+# The usethis package offers an alternative approach. 
+# You can set your Git user name and email from within R
+
+## install if needed (do this exactly once):
+## install.packages("usethis")
+
+library(usethis)
+use_git_config(user.name = "Jane Doe", user.email = "jane@example.org")
+```
+
+---
+
+# The Workflow
+
+* 1_ Save/overwrite your project/files as normal 
+* 2_ Save your project/files on your local Git Repository (commit)
+* 3_ Send your project/files to your remote GitHub Repository (push)
+
+--
+
+If you are working with overflow on LaTex
+* 4_ Get your project/files in your Overleaf account (pull)
+* 5_ Send your project/files to your remote GitHub Repository (push)
+
+---
+
+# Step 1. Create a new repository on GitHub
+
+* Go to GitHub.com and login.
+
+--
+
+* Click the green “New" Repository button
+  * Repository name: myrepo
+  * Public/Private
+  * Check Initialize this repository with a README
+  
+--
+
+* Click the green “Create repository” button
+
+--
+
+* Copy the URL of your new repository
+  * e.g., https://github.com/damien-dupre/myrepo
+  
+---
+
+# Step 2. Clone the new GitHub repository to your computer via RStudio
+
+In RStudio, start a new Project:
+* *File* > *New Project* > *Version Control* > *Git*
+
+--
+
+* In the “repository URL” paste the URL of your new GitHub repository
+
+--
+
+* Decide where to store the local directory for the Project (have a central location)
+
+--
+
+* Click “Create Project” to create a new sub-directory, which will be all of these things:
+ * a directory on your computer
+ * a Git repository, linked to a remote GitHub repository 
+ * an RStudio Project
+ 
+--
+
+If you do not see an option to get the Project from Version Control:
+* RStudio can only act as a GUI front-end for Git if Git has been successfully installed AND RStudio can find it.
+* https://cfss.uchicago.edu/git05.html#make_sure_rstudio_can_find_git
+
+---
+
+# Structure of R project
+
+Sub-folder organisation
+* /data folder for your raw data (use .gitignore to not include them in GitHub )
+* /script folder for your side R scripts and functions
+* /ouput folder for images and documents
+
+--
+
+Best practices for project organization
+
+--
+
+* Treat data as read only
+
+--
+
+* Treat generated output as disposable
+
+--
+
+See also:
+* https://r4ds.had.co.nz/workflow-projects.html
+* https://support.rstudio.com/hc/en-us/articles/200526207-Using-Projects
+* https://swcarpentry.github.io/r-novice-gapminder/02-project-intro/
+
+---
+
+# Use R markdown
+
+---
+
+# Step 3. Clone the new GitHub repository to Overleaf
+
+In Overleaf, start a new Project
+* *New Project* > *Import from GitHub* 
+* Select your GitHub Repository and Click Import to Overleaf
+
+---
+class: center, middle
+
+# Everything is connected!
+
+---
+
+# Make local changes, save, commit
+
+Do this every time you finish a valuable chunk of work, probably many times a day.
+
+* From RStudio, modify the README.md file by adding the line “This is a line from RStudio”
+* Save your changes and Commit these changes to your local repo
+  * Click the “Git” tab in the upper right pane
+  * Check the “Staged” box for any files whose existence or modifications you want to commit
+  * Type a message in “Commit message”. This should describe for a human what modifications you’ve made to the staged files
+  * Click “Commit”
+
+---
+
+# Push your local changes online to GitHub
+
+Do this a few times a day, but possibly less often than you commit.
+
+You have new work in your local Git repository, but the changes are not online yet.
+
+Click the green “Push” button to send your local changes to GitHub. You should see some message along these lines.
+
+---
+
+Some references
+* https://happygitwithr.com/
+* http://r-bio.github.io/intro-git-rstudio/
+* https://support.rstudio.com/hc/en-us/articles/200532077-Version-Control-with-Git-and-SVN
+* https://www.datasurg.net/2015/07/13/rstudio-and-github/
+* https://cfss.uchicago.edu/git05.html
+* https://marine.rutgers.edu/~cfree/rstudio-and-github-for-dummies/
+* https://www.lucasnell.com/posts/github-rstudio/
+
+
