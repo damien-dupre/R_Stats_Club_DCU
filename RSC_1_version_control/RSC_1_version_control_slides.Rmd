@@ -1,0 +1,24 @@
+---
+title: "R Stats Club"
+subtitle: "Version Control"
+author: "Damien DUPRE"
+date: "13/03/2019"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, scipen = 999)
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+# Version Control
+
+Version control is the process to structure the successive evolution of a content (document, code, ...) and enable collaborative principle in order to avoid mistakes and/or unwanted changes.
+
+Version control is the most basic and the most important data science pipeline.
