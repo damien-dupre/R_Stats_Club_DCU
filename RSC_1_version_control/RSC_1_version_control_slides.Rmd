@@ -23,6 +23,9 @@ Version control is the process to structure the successive evolution of a conten
 
 Version control is the most basic and the most important data science pipeline.
 
+![](https://cdn-images-1.medium.com/max/1600/1*qEUqbZM-H39_qOxwTIV7Dw.jpeg)
+
+
 ---
 
 ```{r, eval = TRUE, echo = FALSE, out.width = "50%"}
@@ -44,6 +47,14 @@ Platform Account
 * GitHub https://github.com/
 * Overleaf https://www.overleaf.com/
 
+--
+
+R packages
+* `rmarkdown`
+* `usethis`
+* `tinytex`
+* `rticles`
+
 ---
 
 # What are these things?
@@ -58,6 +69,44 @@ GitHub is the webserver where all the versions of your paper/project are saved
 
 Overleaf is a collaborative LaTex processing environment
 
+---
+
+# The Workflow
+
+* 1_ Save/overwrite your project/files as normal 
+* 2_ Save your project/files on your local Git Repository (commit)
+* 3_ Send your project/files to your remote GitHub Repository (push)
+
+--
+
+If you are working with overflow on LaTex
+* 4_ Get your project/files in your Overleaf account (pull)
+* 5_ Send your project/files to your remote GitHub Repository (push)
+
+---
+
+# Step 1. Create a new repository on GitHub
+
+--
+
+* Go to GitHub.com and login.
+
+--
+
+* Click the green “New" Repository button
+  * Repository name: myrepo
+  * Public/Private
+  * Check Initialize this repository with a README
+  
+--
+
+* Click the green “Create repository” button
+
+--
+
+* Copy the URL of your new repository
+  * e.g., https://github.com/damien-dupre/myrepo
+  
 ---
 
 # Introduce yourself to Git
@@ -82,43 +131,9 @@ use_git_config(user.name = "Jane Doe", user.email = "jane@example.org")
 
 ---
 
-# The Workflow
-
-* 1_ Save/overwrite your project/files as normal 
-* 2_ Save your project/files on your local Git Repository (commit)
-* 3_ Send your project/files to your remote GitHub Repository (push)
-
---
-
-If you are working with overflow on LaTex
-* 4_ Get your project/files in your Overleaf account (pull)
-* 5_ Send your project/files to your remote GitHub Repository (push)
-
----
-
-# Step 1. Create a new repository on GitHub
-
-* Go to GitHub.com and login.
-
---
-
-* Click the green “New" Repository button
-  * Repository name: myrepo
-  * Public/Private
-  * Check Initialize this repository with a README
-  
---
-
-* Click the green “Create repository” button
-
---
-
-* Copy the URL of your new repository
-  * e.g., https://github.com/damien-dupre/myrepo
-  
----
-
 # Step 2. Clone the new GitHub repository to your computer via RStudio
+
+--
 
 In RStudio, start a new Project:
 * *File* > *New Project* > *Version Control* > *Git*
@@ -156,38 +171,82 @@ Sub-folder organisation
 --
 
 Best practices for project organization
-
---
-
 * Treat data as read only
-
---
-
 * Treat generated output as disposable
 
+---
+
+# Use R markdown files
+
+R Markdown are with text and code embedded with can be "knitted" (i.e. create an output) into most commun document types (.pdf with LaTex, .doc with pendoc, .html,... )
+
 --
 
-See also:
-* https://r4ds.had.co.nz/workflow-projects.html
-* https://support.rstudio.com/hc/en-us/articles/200526207-Using-Projects
-* https://swcarpentry.github.io/r-novice-gapminder/02-project-intro/
+R Markdown are made of 3 parts:
+* YAML (metadata)
+* Code Chunks
+* Text (markdown style)
+
+--
+
+![](https://d33wubrfki0l68.cloudfront.net/bd9201291793647e2187bf21af706afac255b2aa/28e87/rmarkdown/diamond-sizes-report.png)
 
 ---
 
-# Use R markdown
+# R markdown files to LaTex
+
+LaTex are fancy pdf documents for academic papers. When Rmarkdown files are knitted in .pdf they are creating a .tex document as well.
+
+--
+
+To use LaTex you have to install a LaTex software on your computer. The best is using R:
+
+```{r}
+install.packages("devtools")
+devtools::install_github(c('yihui/tinytex', 'rstudio/rmarkdown'))
+
+tinytex::install_tinytex()
+```
+
+--
+
+The package `rticles` provides a list of LaTex templates for the most prestigious academic journals
+
+```{r}
+install.packages("rticles")
+```
+
+Once the package is installed, the templates are accessible when you create a new Rmarkdown file.
+* **File** > **New File** > **R Markdown...** > **From Template**
+* Select you template and enjoy
 
 ---
 
+# `rticles` and its fabulous library of templates
+
+![](https://bookdown.org/yihui/rmarkdown/images/rticles-templates.png)
+
+---
 # Step 3. Clone the new GitHub repository to Overleaf
 
 In Overleaf, start a new Project
 * *New Project* > *Import from GitHub* 
 * Select your GitHub Repository and Click Import to Overleaf
 
+![](https://www.filepicker.io/api/file/JTF5Sp7zQUC4JbER127A)
+
 ---
 class: center, middle
 
 # Everything is connected!
+
+---
+
+# Version Control workflow in a nutshell
+
+```{r, eval = TRUE, echo = FALSE, out.width = "100%"}
+knitr::include_graphics("./img/version_control_workflow.png")
+```
 
 ---
 
@@ -214,13 +273,25 @@ Click the green “Push” button to send your local changes to GitHub. You shou
 
 ---
 
-Some references
+# Some references
+
+Version Control
 * https://happygitwithr.com/
 * http://r-bio.github.io/intro-git-rstudio/
-* https://support.rstudio.com/hc/en-us/articles/200532077-Version-Control-with-Git-and-SVN
 * https://www.datasurg.net/2015/07/13/rstudio-and-github/
 * https://cfss.uchicago.edu/git05.html
 * https://marine.rutgers.edu/~cfree/rstudio-and-github-for-dummies/
 * https://www.lucasnell.com/posts/github-rstudio/
+
+R Project
+* https://r4ds.had.co.nz/workflow-projects.html
+* https://support.rstudio.com/hc/en-us/articles/200526207-Using-Projects
+* https://swcarpentry.github.io/r-novice-gapminder/02-project-intro/
+
+Rmarkdown
+* https://rmarkdown.rstudio.com/
+
+LaTex
+* https://yihui.name/tinytex/pain/
 
 
