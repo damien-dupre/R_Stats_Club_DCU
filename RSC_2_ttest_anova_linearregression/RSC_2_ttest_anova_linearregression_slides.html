@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>R Stats Club</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Damien DUPRE" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R Stats Club
+## t-test, ANOVA and linear regression
+### Damien DUPRE
+### 27/03/2019
+
+---
+
+
+
+
+# Statistical tests
+
+
+| test             | DV         | IV           | baseR   |
+|------------------|------------|--------------|---------|
+| t-test           |1 continuous|1 categorical | t.test()|
+| ANOVA            |1 continuous|1+ categorical| aov()   |
+| linear regression|1 continuous|1+ continuous | lm()    |
+
+Note: t-test and anova are special cases of linear models so they can be performed using the `lm()` function as well (see following slides)
+
+---
+
+# Create a dataframe
+
+
+```r
+gender &lt;- c(rep("male",50), rep("female",50))
+# create an object gender which combines the word male repeated 50 times and the word female repeated 50 times
+education &lt;- c(rep("second",33), rep("undergrad",33), rep("master",34))
+# create an object education which combines the word second repeated 33 times, the word undergrad repeated 33 times and the word master repeated 34 times
+age &lt;- sample(15:50, 100, replace = TRUE)
+# create an object age which select a number between 15 and 50, 100 times
+math_results &lt;- rnorm(n = 100, mean = 50, sd = 25)
+# create an object math_results which creates an array of 
+
+data_raw &lt;- data.frame(gender, education, age, math_results)
+# create a dataframe object with 4 columns: gender, education, age, math_results
+
+str(data_raw) # check the structure of the dataframe
+```
+
+```
+## 'data.frame':	100 obs. of  4 variables:
+##  $ gender      : Factor w/ 2 levels "female","male": 2 2 2 2 2 2 2 2 2 2 ...
+##  $ education   : Factor w/ 3 levels "master","second",..: 2 2 2 2 2 2 2 2 2 2 ...
+##  $ age         : int  25 43 29 46 48 16 34 47 34 31 ...
+##  $ math_results: num  56.3 49.3 48.9 84.2 44.4 ...
+```
+
+---
+class: center, middle
+
+# t-test
+
+---
+
+# t-test
+
+
+```r
+res_ttest &lt;- t.test(math_results ~ gender, data = data_raw)
+
+res_ttest
+```
+
+```
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  math_results by gender
+## t = -2.1106, df = 97.241, p-value = 0.03737
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -19.4181729  -0.5972622
+## sample estimates:
+## mean in group female   mean in group male 
+##             43.65249             53.66021
+```
+
+---
+
+# t-test with lm()
+
+
+```r
+res_lm_ttest &lt;- lm(math_results ~ gender, data = data_raw)
+
+summary(res_lm_ttest)
+```
+
+```
+## 
+## Call:
+## lm(formula = math_results ~ gender, data = data_raw)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -61.389 -16.007  -0.386  13.046  58.850 
+## 
+## Coefficients:
+##             Estimate Std. Error t value            Pr(&gt;|t|)    
+## (Intercept)   43.652      3.353  13.020 &lt;0.0000000000000002 ***
+## gendermale    10.008      4.742   2.111              0.0374 *  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 23.71 on 98 degrees of freedom
+## Multiple R-squared:  0.04348,	Adjusted R-squared:  0.03372 
+## F-statistic: 4.455 on 1 and 98 DF,  p-value: 0.03735
+```
+
+---
+class: center, middle
+
+# ANOVA
+
+---
+
+# ANOVA
+
+
+```r
+res_anova &lt;- aov(math_results ~ gender + education, data = data_raw)
+
+summary(res_anova)
+```
+
+```
+##             Df Sum Sq Mean Sq F value Pr(&gt;F)  
+## gender       1   2504    2504   4.479 0.0369 *
+## education    2   1418     709   1.268 0.2860  
+## Residuals   96  53665     559                 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+
+# ANOVA with lm()
+
+
+```r
+res_lm_anova &lt;- lm(math_results ~ gender + education, data = data_raw)
+
+# summary(res_lm_anova)
+
+drop1(res_lm_anova, test = "F")
+```
+
+```
+## Single term deletions
+## 
+## Model:
+## math_results ~ gender + education
+##           Df Sum of Sq   RSS    AIC F value  Pr(&gt;F)  
+## &lt;none&gt;                 53665 636.53                  
+## gender     1    2811.5 56476 639.64  5.0295 0.02722 *
+## education  2    1417.9 55083 635.14  1.2683 0.28599  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+class: center, middle
+
+# linear regression
+
+---
+
+# linear regression
+
+
+```r
+res_lm &lt;- lm(math_results ~ age, data = data_raw)
+
+summary(res_lm)
+```
+
+```
+## 
+## Call:
+## lm(formula = math_results ~ age, data = data_raw)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -55.995 -15.386  -0.476  14.891  55.464 
+## 
+## Coefficients:
+##             Estimate Std. Error t value      Pr(&gt;|t|)    
+## (Intercept)  50.5898     8.0486   6.286 0.00000000908 ***
+## age          -0.0596     0.2366  -0.252         0.802    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 24.23 on 98 degrees of freedom
+## Multiple R-squared:  0.0006471,	Adjusted R-squared:  -0.00955 
+## F-statistic: 0.06346 on 1 and 98 DF,  p-value: 0.8016
+```
+
+---
+
+# linear regression (main effects)
+
+
+```r
+res_lm &lt;- lm(math_results ~ age + gender, data = data_raw)
+
+# summary(res_lm)
+
+drop1(res_lm, test = "F")
+```
+
+```
+## Single term deletions
+## 
+## Model:
+## math_results ~ age + gender
+##        Df Sum of Sq   RSS    AIC F value  Pr(&gt;F)  
+## &lt;none&gt;              54988 636.97                  
+## age     1     94.97 55083 635.14  0.1675 0.68322  
+## gender  1   2561.56 57549 639.52  4.5187 0.03607 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+---
+
+# linear regression (interaction effect)
+
+
+```r
+res_lm &lt;- lm(math_results ~ age : gender, data = data_raw)
+
+# summary(res_lm)
+
+drop1(res_lm, test = "F")
+```
+
+```
+## Single term deletions
+## 
+## Model:
+## math_results ~ age:gender
+##            Df Sum of Sq   RSS    AIC F value Pr(&gt;F)
+## &lt;none&gt;                  55480 637.86               
+## age:gender  2    2106.4 57586 637.59  1.8414 0.1641
+```
+
+---
+
+# linear regression (main effects and interaction effect)
+
+
+```r
+res_lm &lt;- lm(math_results ~ age * gender, data = data_raw)
+
+summary(res_lm)
+```
+
+```
+## 
+## Call:
+## lm(formula = math_results ~ age * gender, data = data_raw)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -60.34 -15.33  -0.51  13.96  58.85 
+## 
+## Coefficients:
+##                 Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)    43.638730  11.334568   3.850 0.000213 ***
+## age             0.000434   0.341270   0.001 0.998988    
+## gendermale     16.012501  15.932974   1.005 0.317427    
+## age:gendermale -0.180995   0.469009  -0.386 0.700417    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 23.91 on 96 degrees of freedom
+## Multiple R-squared:  0.04661,	Adjusted R-squared:  0.01681 
+## F-statistic: 1.564 on 3 and 96 DF,  p-value: 0.2031
+```
+
+---
+class: center, middle
+
+# statistics with tadaatoolbox
+
+
+```r
+# install.packages("tadaatoolbox") # only once
+
+library(tadaatoolbox)
+```
+
+---
+
+# t-test with tadaatoolbox
+
+
+```r
+tadaa_t.test(data = data_raw, response = math_results, group = gender, print = "markdown")
+```
+
+Table 1: **Two Sample t-test** with alternative hypothesis: `\(\mu_1 \neq \mu_2\)`
+
+
+|  Diff  | `\(\mu_1\)` female | `\(\mu_2\)` male |   t   |  SE  | df |   `\(CI_{95\%}\)`   |   p   | Cohen\'s d | Power |
+|:------:|:--------------:|:------------:|:-----:|:----:|:--:|:---------------:|:-----:|:----------:|:-----:|
+| -10.01 |     43.65      |    53.66     | -2.11 | 4.74 | 98 | (-19.42 - -0.6) | &lt; .05 |   -0.42    | 0.55  |
+
+
+&lt;br&gt;
+
+
+&lt;br&gt;
+
+---
+
+# ANOVA with tadaatoolbox
+
+
+```r
+tadaa_aov(data = data_raw, math_results ~ gender + education, print = "markdown")
+```
+
+Table 2: **Two-Way ANOVA**: Using Type III Sum of Squares
+
+
+|   Term    | df |    SS    |   MS    |  F   |   p   | `\(\eta_\text{part}^2\)` | Cohen's f | Power |
+|:---------:|:--:|:--------:|:-------:|:----:|:-----:|:--------------------:|:---------:|:-----:|
+| education | 2  | 1417.94  | 708.97  | 1.27 | .286  |         0.03         |   0.16    | 0.28  |
+|  gender   | 1  | 2811.53  | 2811.53 | 5.03 | &lt; .05 |         0.05         |   0.23    | 0.61  |
+| Residuals | 96 | 53664.68 | 559.01  |      |       |                      |           |       |
+|   Total   | 99 | 57894.15 | 4079.51 |      |       |                      |           |       |
+
+
+&lt;br&gt;
+
+
+&lt;br&gt;
+
+---
+class: center, middle
+
+# statistics with jmv
+
+
+```r
+# install.packages("jmv") # only once
+
+library(jmv)
+```
+
+---
+
+# t-test with jmv
+
+
+```r
+ttestIS(formula = math_results ~ gender, data = data_raw)
+```
+
+```
+## 
+##  INDEPENDENT SAMPLES T-TEST
+## 
+##  Independent Samples T-Test                                    
+##  ------------------------------------------------------------- 
+##                                   statistic    df      p       
+##  ------------------------------------------------------------- 
+##    math_results    Student's t        -2.11    98.0    0.037   
+##  -------------------------------------------------------------
+```
+
+---
+
+# ANOVA with jmv
+
+
+```r
+ANOVA(formula = math_results ~ gender + education, data = data_raw)
+```
+
+```
+## 
+##  ANOVA
+## 
+##  ANOVA                                                                 
+##  --------------------------------------------------------------------- 
+##                 Sum of Squares    df    Mean Square    F       p       
+##  --------------------------------------------------------------------- 
+##    gender                 2812     1           2812    5.03    0.027   
+##    education              1418     2            709    1.27    0.286   
+##    Residuals             53665    96            559                    
+##  ---------------------------------------------------------------------
+```
+
+---
+class: center, middle
+
+# Thank you for your attentions
+don't hesitate to send me an email: damien.dupre@dcu.ie
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
