@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>R Stats Club</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Damien DUPRE" />
+    <meta name="date" content="2019-03-04" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R Stats Club
+## Reports with Rmarkdown
+### Damien DUPRE
+### 03/04/2019
+
+---
+
+
+&lt;style type="text/css"&gt;
+.remark-code {
+  font-size: 12px;
+  overflow-x: scroll;
+}
+&lt;/style&gt;
+
+
+
+
+# Automatic Reports with Rmarkdown
+
+R Markdown documents are fully reproducible. 
+* Use a productive notebook interface to weave together narrative text and code to produce elegantly formatted output. 
+* Use multiple languages including R, Python, and SQL.
+
+See "R Markdown: The Definitive Guide" 
+https://bookdown.org/yihui/rmarkdown/
+
+Packages required
+
+
+```r
+install.packages("rmarkdown")
+
+install.packages("devtools")
+```
+
+---
+
+# Using Rmarkdown files
+
+R Markdown provides an authoring framework for data science. You can use a single R Markdown file to both
+* save and execute code, and
+* generate high quality reports that can be shared with an audience.
+
+In RStudio IDE: File &gt; New File &gt; R Markdown ...
+
+&lt;img src="./img/new_rmarkdown.png" width="50%" /&gt;
+
+---
+
+# One Rmarkdown, three possibilities
+
+While creating a new Rmarkdown file, 3 possible outputs files can be generated:
+
+* HTML: can be open with any web browser, these outputs are well designed for blog reports and can embed html widgets such as interactive plots, maps and tables (https://www.htmlwidgets.org/)
+
+* PDF: build with a LaTex processor, these outputs are the best for neat academic papers
+
+* Word: for collaboration purproses, a .doc output can be generated using pandoc (https://pandoc.org/)
+
+Or select a template with a predifined output type. Templates are automatically installed when you are installing a specific package.
+
+Exemple of nice templates:
+
+
+```r
+# for HTML outputs
+install.packages("prettydoc") # https://github.com/yixuan/prettydoc
+install.packages("pagedown") # https://github.com/rstudio/pagedown
+# for PDF outputs
+install.packages("rticles") # https://github.com/rstudio/rticles
+devtools::install_github("crsh/papaja") # https://crsh.github.io/papaja_man/introduction.html
+install.packages("vitae") # https://github.com/ropenscilabs/vitae
+```
+
+---
+
+# Structure of the Rmarkdown file
+
+There are three basic components of an R Markdown document: the metadata, text, and code.
+
+&lt;img src="https://rstudioblog.files.wordpress.com/2014/06/storms2-001.png" width="100%" /&gt;
+
+---
+
+# Creating HTML ouputs (.html)
+
+Specify "html_document" as output.
+* For very pretty documents `install.packages("prettydoc")`
+* For research poster template `install.packages("pagedown")`
+
+&lt;div class="figure"&gt;
+&lt;img src="https://yixuan.cos.name/prettydoc/images/cayman.png" alt="Prettydoc output using 'cayman' style" width="40%" /&gt;
+&lt;p class="caption"&gt;Prettydoc output using 'cayman' style&lt;/p&gt;
+&lt;/div&gt;
+---
+
+# Creating PDF ouputs (LaTex)
+
+If you have no use for TeX beyond rendering R Markdown documents, I recommend you use TinyTex. 
+Otherwise consider MikTeX for Windows, MacTeX for Mac, or TeX Live for Linux.
+
+
+```r
+install.packages("tinytex")
+
+tinytex::install_tinytex()
+```
+
+When using TinyTex, the required packages will be installed automatically when rendering a the first PDF-document. 
+
+MikTeX users may enable the automatic installation of missing packages.
+
+Specify "pdf_document" as output.
+* For various academic paper template `install.packages("rticles")`
+* For APA style academic paper template `devtools::install_github("crsh/papaja")`
+* For CV template `install.packages("vitae")`
+
+---
+
+# Creating Word ouputs (.doc)
+
+Specify "word_document" as output.
+
+See "Happy collaboration with Rmd to docx" for more details (https://rmarkdown.rstudio.com/articles_docx.html)
+
+&lt;img src="https://d33wubrfki0l68.cloudfront.net/5f7942270eb8ac38b1259ca1f5911ae77e5d7f89/3b712/articles/images/test-report-02.png" width="100%" /&gt;
+
+---
+class: center, middle
+
+# Write an academic paper in 3 slides!
+
+---
+
+# 1 Use a template
+
+Install LaTex
+
+
+```r
+install.packages("tinytex")
+
+tinytex::install_tinytex()
+```
+
+Install `rticles` to access all the academic templates
+
+
+```r
+install.packages("rticles")
+```
+
+Create a new Rmarkdown file with your template
+* File &gt; New File &gt; R Markdown ...
+* Select "From Template"
+* Select your academic paper (e.g., Elsevier) and click ok
+
+In the new Rmd file click "knit" to build the default template
+
+---
+
+# 2 Fill Metadata, text and code
+
+Here is the code
+
+
+```r
+data_raw &lt;- data.frame(
+  DV = c(rnorm(50,25,10), rnorm(50,75,10)),
+  IV = c(rep("Other",50), rep("UseR",50))
+  )
+```
+
+
+```r
+res_lm &lt;- lm(DV ~ IV, data = data_raw)
+
+library(report)
+
+report(data_raw)
+
+report(res_lm)
+```
+
+
+```r
+plot(data_raw$IV, data_raw$DV)
+```
+
+---
+
+# Create your research paper
+
+If it looks like that:
+
+&lt;img src="./img/code_paper.png" width="30%" /&gt;
+
+Click on Knit and fingers crossed!
+
+---
+class: center, middle
+
+# Thank you for your attention
+don't hesitate to send me an email: damien.dupre@dcu.ie
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
