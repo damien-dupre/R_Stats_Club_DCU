@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>R Stats Club</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Damien DUPRE" />
+    <meta name="date" content="2019-10-04" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R Stats Club
+## SEM with Lavaan
+### Damien DUPRE
+### 10/04/2019
+
+---
+
+
+
+
+# Requirements
+
+Install {lavaan} and {semPlot} packages
+
+
+```r
+#install.packages("lavaan")
+#install.packages("semPlot")
+
+library(lavaan)
+
+library(semPlot)
+```
+
+---
+
+# Structural Equation Models in a nutshell
+
+Explore relationship with variables
+
+Confirm if new data are fitting an existing model
+
+Two types of variables
+* Manifest (real measurment represented by squares in the model)
+* Latent (abstract underlying variable measured inderectly from manifest variables represented by circles)
+
+Causal link between manifest variables and a latent variable
+
+&lt;img src="./img/sem_variables.png" width="50%" /&gt;
+
+---
+
+# Using Lavaan for SEM
+
+The lavaan package is developed to provide useRs, researchers and teachers a free open-source, but commercial-quality package for latent variable modeling. 
+
+You can use lavaan to estimate a large variety of multivariate statistical models, including path analysis, confirmatory factor analysis, structural equation modeling and growth curve models.
+
+All information about how to use Lavaan: http://lavaan.ugent.be/
+
+&lt;img src="./img/sem_software.png" width="50%" /&gt;
+
+---
+
+# Model formula
+
+* `=~` for the latent variables
+
+* `~` for the regressions
+
+* `~~` for the residual covariances in the manifest variables
+
+you can choose between a user-friendly interface (in combination with the fitting functions `cfa()`, `sem()`, `growth()`) or a low-level interface (using the fitting function lavaan() where 'defaults' do not get in the way)
+
+---
+
+# The model
+
+.pull-left[
+&lt;img src="./img/lavaan_model.png" width="150%" /&gt;
+]
+
+.pull-right[
+
+```r
+model &lt;- "
+   # latent variables
+     ind60 =~ x1 + x2 + x3
+     dem60 =~ y1 + y2 + y3 + y4
+     dem65 =~ y5 + y6 + y7 + y8
+   # regressions
+     dem60 ~ ind60
+     dem65 ~ ind60 + dem60
+   # residual covariances
+     y1 ~~ y5
+     y2 ~~ y4 + y6
+     y3 ~~ y7
+     y4 ~~ y8
+     y6 ~~ y8
+"
+```
+
+]
+
+---
+
+# Run the model
+
+
+```r
+data(PoliticalDemocracy)
+
+fit &lt;- lavaan::sem(model = model, data = PoliticalDemocracy)
+```
+
+---
+
+# Check results
+
+1. Loading: strenght of the relaship between latent and manifest variables (Std.all &gt; 0.3 acceptable)
+2. Fit Indices (Goodness and Badness)
+
+
+```r
+summary(fit)
+```
+
+
+```r
+summary(fit, standardized = TRUE, fit.measures = TRUE)
+# x1 correspond to 1 (scaling of the manifest variables)
+```
+
+The argument standardized=TRUE augments the output with standardized parameter values. Two extra columns of standardized parameter values are printed. In the first column (labeled Std.lv), only the latent variables are standardized. In the second column (labeled Std.all), both latent and observed variables are standardized. The latter is often called the 'completely standardized solution'.
+
+---
+
+# What does summary output actually mean?
+
+&lt;img src="./img/sem_summary1.png" width="100%" /&gt;
+
+* this is a **good** fit
+* P-value represent the probability you will reject your null hypothesis but in this case the null hypothesis is that your model is the right fit for your data. You can use `modindices(fit)` to look for possible missing links.
+
+---
+
+# What does summary output actually mean?
+
+.pull-left[
+&lt;img src="./img/sem_summary2.png" width="100%" /&gt;
+]
+
+.pull-right[
+* Model test baseline model -&gt; to be significantly different
+* User model versus baseline model -&gt; to be the closest to 1 as possible
+* Loglikelihood and Information Criteria -&gt; the smallest possible
+* Root Mean Square Error of Approximation -&gt; the smallest possible and non significant
+* Standardized Root Mean Square Residual -&gt; the smallest possible
+]
+---
+
+# What does summary output actually mean?
+
+&lt;img src="./img/sem_summary3.png" width="50%" /&gt;
+
+---
+
+# Extracting information
+
+## parameterEstimates()
+
+The parameterEstimates function extracts not only the values of the estimated parameters, but also the standard errors, the z-values, the standardized parameter values, and returns everything conveniently as a data frame.
+
+
+```r
+parameterEstimates(fit)
+```
+
+The standardizedSolution() function is similar to the parameterEstimates() function, but only shows the unstandardized and standardized parameter estimates.
+
+## fitMeasures()
+
+The fitMeasures() function returns all the fit measures computed by lavaan as a named numeric vector. 
+
+
+```r
+fitMeasures(fit)
+```
+
+---
+
+# Check the structure (1)
+
+
+```r
+semPlot::semPaths(fit)
+```
+
+![](RSC_4_sem_with_lavaan_files/figure-html/unnamed-chunk-14-1.png)&lt;!-- --&gt;
+
+---
+
+# Check the structure (2)
+
+
+```r
+semPlot::semPaths(fit, what='std',curvePivot = TRUE, fade=FALSE)
+```
+
+![](RSC_4_sem_with_lavaan_files/figure-html/unnamed-chunk-15-1.png)&lt;!-- --&gt;
+
+---
+
+# Multiple groups
+
+
+```r
+PoliticalDemocracy_group &lt;- PoliticalDemocracy %&gt;% 
+  dplyr::mutate(group_demo = c(rep("group1",40), rep("group2",35)))
+
+fit &lt;- lavaan::sem(
+  model = model, 
+  data = PoliticalDemocracy_group, 
+  group = "group_demo")
+```
+
+---
+
+# Multilevel SEM
+
+If the data is clustered, one way to handle the clustering is to use a multilevel modeling approach.
+
+
+```r
+data(Demo.twolevel)
+
+model &lt;- '
+ level: 1
+  fw =~ y1 + y2 + y3
+  fw ~ x1 + x2 + x3
+ level: 2
+  fb =~ y1 + y2 + y3
+  fb ~ w1 + w2
+'
+
+fit &lt;- sem(model = model, data = Demo.twolevel, cluster = "cluster")
+```
+
+---
+
+# Latent growth curve models
+
+Growth modeling is often used to analyze longitudinal or developmental data. In this type of data, an outcome measure is measured on several occasions, and we want to study the change over time.
+
+.pull-left[
+&lt;img src="./img/growth_model.png" width="150%" /&gt;
+]
+
+.pull-right[
+
+```r
+data(Demo.growth)
+
+model &lt;- '
+# intercept and slope with fixed coefficients
+ i =~ 1*t1 + 1*t2 + 1*t3 + 1*t4
+ s =~ 0*t1 + 1*t2 + 2*t3 + 3*t4
+# regressions
+ i ~ x1 + x2
+ s ~ x1 + x2
+# time-varying covariates
+ t1 ~ c1
+ t2 ~ c2
+ t3 ~ c3
+ t4 ~ c4
+'
+fit &lt;- growth(
+  model = model, 
+  data = Demo.growth)
+```
+]
+
+---
+class: center, middle
+
+# Thank you for your attention
+don't hesitate to send me an email: damien.dupre@dcu.ie
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
