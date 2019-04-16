@@ -1,0 +1,59 @@
+---
+title: "R Stats Club"
+subtitle: "From SPSS to R"
+author: "Damien DUPRE"
+date: "17/04/2019"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, scipen = 999)
+set.seed(123)
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  error = FALSE,
+  eval = FALSE)
+
+library(tidyverse)
+```
+
+# From SPSS to R: Ressources
+
+## Blog post
+https://mikebyrnehfhci.wordpress.com/2012/10/19/translating-spss-to-r-simple-anova/
+
+
+## {SPSStoR} package
+https://www.r-bloggers.com/spss-to-r-an-r-package-to-convert-spss-syntax/
+
+```{r}
+devtools::install_github("lebebr01/SPSStoR")
+library(SPSStoR)
+```
+
+---
+
+# title
+
+
+
+.pull-left[
+
+]
+
+.pull-right[
+
+]
+
+---
+class: center, middle
+
+# Thank you for your attention
+don't hesitate to send me an email: damien.dupre@dcu.ie
