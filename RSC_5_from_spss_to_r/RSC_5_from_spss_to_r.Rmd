@@ -24,18 +24,38 @@ knitr::opts_chunk$set(
 library(tidyverse)
 ```
 
-# From SPSS to R: Ressources
+# Translating SPSS to R
 
-## Blog post
 https://mikebyrnehfhci.wordpress.com/2012/10/19/translating-spss-to-r-simple-anova/
+www.soc.univ.kiev.ua/sites/default/files/course/materials/translation_syntax.pdf
 
+Describes commandes for:
+* Descriptives
+* Basic ANOVA
+* Welch Adjustment
+* Contrasts
+* Posthocs
 
-## {SPSStoR} package
+---
+
+# {SPSStoR} package
+
 https://www.r-bloggers.com/spss-to-r-an-r-package-to-convert-spss-syntax/
 
 ```{r}
 devtools::install_github("lebebr01/SPSStoR")
 library(SPSStoR)
+```
+
+1. Save your spss syntax in a text file
+2. Include `GET FILE='path/to/your/file.sav'.` at the beinging
+3. The end of each command should finish with a dot.
+4. Run the syntax with the function `spss_to_r(file = "path/to/your/syntax.txt")`
+
+Example
+
+```{r}
+spss_to_r(file = "./RSC_5_from_spss_to_r/unianova_spss.txt")
 ```
 
 ---

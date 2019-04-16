@@ -195,7 +195,7 @@ The standardizedSolution() function is similar to the parameterEstimates() funct
 The fitMeasures() function returns all the fit measures computed by lavaan as a named numeric vector. 
 
 ```{r}
-fitMeasures(fit)
+lavaan::fitMeasures(fit)
 ```
 
 ---

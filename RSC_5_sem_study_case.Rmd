@@ -1,0 +1,160 @@
+---
+title: "R Stats Club"
+subtitle: "SEM study case"
+author: "Damien DUPRE"
+date: "17/04/2019"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, scipen = 999)
+set.seed(123)
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  error = FALSE,
+  eval = FALSE)
+
+library(tidyverse)
+```
+
+# More references on SEM
+
+https://www.the-research-hub.org/structural-equation-modelling-sem-and-multi-group-sem-using-r/
+https://advstats.psychstat.org/book/path/index.php
+https://blog.efpsa.org/2015/12/14/structural-equation-modeling-what-is-it-what-does-it-have-in-common-with-hippie-music-and-why-does-it-eat-cake-to-get-rid-of-measurement-error/
+https://users.ugent.be/~yrosseel/lavaan/pml/PL_Tutorial.pdf
+https://www.yourpersonality.net/R/R_Notes_3.html
+http://sachaepskamp.com/semPlot/examples
+http://www.rpubs.com/LexyBrooks/SEMmodellingimmun
+https://rpubs.com/cardiomoon/239332
+
+---
+
+# Creating the data frame
+
+```{r}
+data_frame <- data.frame(
+  A1 = rtruncnorm(922, mean = 4.45, sd = 0.82, a = 1, b = 5), 
+  A2 = rtruncnorm(922, mean = 3.69, sd = 1.01, a = 1, b = 5),
+  A3 = rtruncnorm(922, mean = 4.03, sd = 1.03, a = 1, b = 5),
+  A4 = rtruncnorm(922, mean = 3.66, sd = 1.19, a = 1, b = 5),
+  C1 = rtruncnorm(922, mean = 2.97, sd = 1.47, a = 1, b = 5),
+  C2 = rtruncnorm(922, mean = 3.31, sd = 1.23, a = 1, b = 5),
+  C3 = rtruncnorm(922, mean = 3.05, sd = 1.51, a = 1, b = 5),
+  C4 = rtruncnorm(922, mean = 3.27, sd = 1.39, a = 1, b = 5),
+  D1 = rtruncnorm(922, mean = 2.94, sd = 1.59, a = 1, b = 5),
+  D2 = rtruncnorm(922, mean = 3.40, sd = 1.51, a = 1, b = 5),
+  D3 = rtruncnorm(922, mean = 3.45, sd = 1.36, a = 1, b = 5),
+  D4 = rtruncnorm(922, mean = 2.93, sd = 1.61, a = 1, b = 5),
+  W1 = rtruncnorm(922, mean = 2.68, sd = 1.13, a = 1, b = 5),
+  W2 = rtruncnorm(922, mean = 2.18, sd = 1.15, a = 1, b = 5),
+  W3 = rtruncnorm(922, mean = 1.99, sd = 1.10, a = 1, b = 5),
+  W4 = rtruncnorm(922, mean = 2.81, sd = 1.31, a = 1, b = 5),
+  like1 = rtruncnorm(922, mean = 4.57, sd = 1.70, a = 1, b = 7),
+  like2 = rtruncnorm(922, mean = 4.27, sd = 1.64, a = 1, b = 7),
+  like3 = rtruncnorm(922, mean = 4.20, sd = 1.65, a = 1, b = 7),
+  comp1 = rtruncnorm(922, mean = 4.78, sd = 1.20, a = 1, b = 7),
+  comp2 = rtruncnorm(922, mean = 5.08, sd = 1.12, a = 1, b = 7),
+  comp3 = rtruncnorm(922, mean = 4.8 , sd = 1.29, a = 1, b = 7),
+  RE1 = rtruncnorm(922, mean = 4.75, sd = 1.27, a = 1, b = 7),
+  RE2_RC = rtruncnorm(922, mean = 4.3, sd = 1.68, a = 1, b = 7),
+  RE4 = rtruncnorm(922, mean = 4.04, sd = 1.53, a = 1, b = 7),
+  RE5_RC = rtruncnorm(922, mean = 4.68, sd = 1.48, a = 1, b = 7),
+  LE1 = rtruncnorm(922, mean = 5.15, sd = 1.21, a = 1, b = 7),
+  LE2 = rtruncnorm(922, mean = 4.98, sd = 1.48, a = 1, b = 7),
+  LE3 = rtruncnorm(922, mean = 4.41, sd = 1.67, a = 1, b = 7),
+  LE4 = rtruncnorm(922, mean = 5, sd = 1.41, a = 1, b = 7)
+) %>% 
+  dplyr::mutate_if(is.numeric, round, 0) %>% 
+  dplyr::mutate(log_tenure = rtruncnorm(922, mean = 0.6, sd = 0.23, a = -0.3, b = 1.6))
+
+#write.csv(data_frame,"./RSC_5_sem_study_case/data.csv")
+```
+
+---
+
+# Model representation
+
+```{r, eval = TRUE, echo = FALSE, out.width = "150%"}
+knitr::include_graphics("./RSC_5_sem_study_case/sem_model.png")
+```
+
+---
+
+# Requirements
+
+Install {lavaan} and {semPlot} packages
+
+```{r}
+#install.packages("lavaan")
+#install.packages("semPlot")
+
+library(lavaan)
+
+library(semPlot)
+```
+
+---
+
+# Model
+
+```{r}
+model <- "
+   # latent variables
+     tenure =~ log_tenure
+     reelection =~ RE1 + RE2_RC + RE4 + RE5_RC
+     leaderevaluation =~ LE1 + LE2 + LE3 + LE4
+     likability =~ like1 + like2 + like3
+     competence =~ comp1 + comp2 + comp3
+     communality =~ C1 + C2 + C3 + C4
+     weakness =~ W1 + W2 + W3 + W4
+     agency =~ A1 + A2 + A3 + A4
+     dominance =~ D1 + D2 + D3 + D4
+   # regressions
+     likability ~ communality + weakness + agency + dominance
+     competence ~ communality + weakness + agency + dominance
+     tenure ~ likability + competence
+     reelection ~ likability + competence
+     leaderevaluation ~ likability + competence
+   # residual covariances
+"
+```
+
+---
+
+# Run the model
+
+```{r}
+fit <- lavaan::sem(model = model, data = data_frame)
+```
+
+---
+
+# Check results
+
+```{r}
+lavaan::parameterEstimates(fit)
+lavaan::fitMeasures(fit)
+```
+
+---
+
+# Check paths
+
+```{r}
+semPlot::semPaths(fit, what='std',curvePivot = TRUE, fade=FALSE)
+```
+
+
+---
+class: center, middle
+
+# Thank you for your attention
+don't hesitate to send me an email: damien.dupre@dcu.ie
