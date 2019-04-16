@@ -60,17 +60,18 @@ spss_to_r(file = "./RSC_5_from_spss_to_r/unianova_spss.txt")
 
 ---
 
-# title
+But...
 
+It doesn't work properly, it just gives an idea of what to do.
 
+If you want to perform an anova, you have to tidy the output of the spss_to_r
 
-.pull-left[
+```{r}
+# mod_1 <- lm(LOG_TENURE ~ WAVE_DUMMY + SENIORITY_DUMMY + factor(MOTIVES) + factor(TSEX) + factor(PSEX) + factor(MOTIVES) + : + factor(TSEX) + factor(MOTIVES) + : + factor(PSEX) + factor(TSEX) + : + factor(PSEX) + factor(MOTIVES) + : + factor(TSEX) + : + factor(PSEX), data = x)
 
-]
-
-.pull-right[
-
-]
+mod_1 <- lm(LOG_TENURE ~ WAVE_DUMMY + SENIORITY_DUMMY + MOTIVES * TSEX * PSEX, data = x)
+car::Anova(mod_1, type = 3) 
+```
 
 ---
 class: center, middle

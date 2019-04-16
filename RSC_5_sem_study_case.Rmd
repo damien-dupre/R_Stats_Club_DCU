@@ -99,6 +99,8 @@ Install {lavaan} and {semPlot} packages
 library(lavaan)
 
 library(semPlot)
+
+data_frame <- read.csv("https://raw.githubusercontent.com/damien-dupre/R_Stats_Club_DCU/master/RSC_5_sem_study_case/data.csv")
 ```
 
 ---
