@@ -40,6 +40,8 @@ knitr::opts_chunk$set(
 
 Note: t-test and anova are special cases of linear models so they can be performed using the `lm()` function as well (see following slides)
 
+https://lindeloev.github.io/tests-as-linear/ for more informations
+
 ---
 
 # Create a dataframe

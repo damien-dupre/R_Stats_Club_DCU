@@ -40,6 +40,8 @@ class: center, middle, inverse, title-slide
 
 Note: t-test and anova are special cases of linear models so they can be performed using the `lm()` function as well (see following slides)
 
+https://lindeloev.github.io/tests-as-linear/ for more informations
+
 ---
 
 # Create a dataframe
@@ -129,8 +131,8 @@ summary(res_lm_ttest)
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value            Pr(&gt;|t|)    
-## (Intercept)   48.656      2.371  20.523 &lt;0.0000000000000002 ***
-## gender1       -5.004      2.371  -2.111              0.0374 *  
+## (Intercept)   43.652      3.353  13.020 &lt;0.0000000000000002 ***
+## gendermale    10.008      4.742   2.111              0.0374 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
@@ -297,11 +299,11 @@ summary(res_lm)
 ## -60.34 -15.33  -0.51  13.96  58.85 
 ## 
 ## Coefficients:
-##             Estimate Std. Error t value      Pr(&gt;|t|)    
-## (Intercept) 51.64498    7.96649   6.483 0.00000000388 ***
-## age         -0.09006    0.23450  -0.384         0.702    
-## gender1     -8.00625    7.96649  -1.005         0.317    
-## age:gender1  0.09050    0.23450   0.386         0.700    
+##                 Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)    43.638730  11.334568   3.850 0.000213 ***
+## age             0.000434   0.341270   0.001 0.998988    
+## gendermale     16.012501  15.932974   1.005 0.317427    
+## age:gendermale -0.180995   0.469009  -0.386 0.700417    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
@@ -331,7 +333,7 @@ library(tadaatoolbox)
 tadaa_t.test(data = data_raw, response = math_results, group = gender, print = "markdown")
 ```
 
-Table 3: **Two Sample t-test** with alternative hypothesis: `\(\mu_1 \neq \mu_2\)`
+Table 1: **Two Sample t-test** with alternative hypothesis: `\(\mu_1 \neq \mu_2\)`
 
 
 |  Diff  | `\(\mu_1\)` female | `\(\mu_2\)` male |   t   |  SE  | df |   `\(CI_{95\%}\)`   |   p   | Cohen\'s d | Power |
@@ -353,7 +355,7 @@ Table 3: **Two Sample t-test** with alternative hypothesis: `\(\mu_1 \neq \mu_2\
 tadaa_aov(data = data_raw, math_results ~ gender + education, print = "markdown")
 ```
 
-Table 4: **Two-Way ANOVA**: Using Type III Sum of Squares
+Table 2: **Two-Way ANOVA**: Using Type III Sum of Squares
 
 
 |   Term    | df |    SS    |   MS    |  F   |   p   | `\(\eta_\text{part}^2\)` | Cohen's f | Power |
