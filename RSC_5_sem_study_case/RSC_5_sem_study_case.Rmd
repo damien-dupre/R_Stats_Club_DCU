@@ -26,14 +26,15 @@ library(tidyverse)
 
 # More references on SEM
 
-https://www.the-research-hub.org/structural-equation-modelling-sem-and-multi-group-sem-using-r/
-https://advstats.psychstat.org/book/path/index.php
-https://blog.efpsa.org/2015/12/14/structural-equation-modeling-what-is-it-what-does-it-have-in-common-with-hippie-music-and-why-does-it-eat-cake-to-get-rid-of-measurement-error/
-https://users.ugent.be/~yrosseel/lavaan/pml/PL_Tutorial.pdf
-https://www.yourpersonality.net/R/R_Notes_3.html
-http://sachaepskamp.com/semPlot/examples
-http://www.rpubs.com/LexyBrooks/SEMmodellingimmun
-https://rpubs.com/cardiomoon/239332
+* https://www.the-research-hub.org/structural-equation-modelling-sem-and-multi-group-sem-using-r/
+* https://advstats.psychstat.org/book/path/index.php
+* https://blog.efpsa.org/2015/12/14/structural-equation-modeling-what-is-it-what-does-it-have-in-common-with-hippie-music-and-why-does-it-eat-cake-to-get-rid-of-measurement-error/
+* https://users.ugent.be/~yrosseel/lavaan/pml/PL_Tutorial.pdf
+* https://www.yourpersonality.net/R/R_Notes_3.html
+* http://sachaepskamp.com/semPlot/examples
+* http://www.rpubs.com/LexyBrooks/SEMmodellingimmun
+* https://rpubs.com/cardiomoon/239332
+* https://curranbauer.org/inform/#software
 
 ---
 
@@ -83,7 +84,7 @@ data_frame <- data.frame(
 # Model representation
 
 ```{r, eval = TRUE, echo = FALSE, out.width = "150%"}
-knitr::include_graphics("./RSC_5_sem_study_case/sem_model.png")
+knitr::include_graphics("./sem_model.png")
 ```
 
 ---
