@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>R Stats Club</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Damien DUPRE" />
+    <meta name="date" content="2019-01-05" />
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R Stats Club
+## Processing Text
+### Damien DUPRE
+### 01/05/2019
+
+---
+
+
+
+
+# Audio File Transciption
+
+In order to analyse an interview, a transcription from speech-to-text has to be perfomed.
+
+Many methods can be used:
+1. Manual Transcription: high accuracy but highly time consuming (e.g., 1h audio needs around 5h of manual transciption)
+2. Local Automatic Transcription with a software: fast but costly solution (e.g. Dragon NaturallySpeaking Home for $150)
+3. Web Automatic Transcription with https://translate.google.com/: free but not optimal
+4. Web Automatic Transcription with Google Speech API
+
+---
+
+# Using Google Speech API from R
+
+Requirement: Having a Google Cloud account and download authentification json file
+
+See https://cran.r-project.org/web/packages/googleLanguageR/vignettes/setup.html and https://flaviocopes.com/google-api-authentication/ for more explanations
+
+Then
+
+
+```r
+install.packages("googleLanguageR")
+
+library(googleLanguageR)
+
+googleLanguageR::gl_auth("./link/to/your/authentication_file.json")
+```
+
+---
+
+# Using Google Speech API from R
+
+Example
+
+
+```r
+test_audio &lt;- system.file(
+  "woman1_wb.wav", 
+  package = "googleLanguageR"
+  )
+
+async &lt;- googleLanguageR::gl_speech(
+  audio_source = test_audio, 
+  asynch = TRUE, # asynch = TRUE used for long audio files
+  languageCode = "en-GB"
+  ) 
+
+result &lt;- gl_speech_op(async)
+
+text &lt;- result$transcript
+```
+
+---
+
+# Text Mining
+
+Once the text is obtained, it is time for some data wrangling
+
+The packages needed:
+
+
+```r
+library(textreadr) # install.packages("textreadr")
+library(tidyverse) # install.packages("tidyverse")
+library(tidytext) # install.packages("tidytext")
+```
+
+---
+
+# Read docx document
+
+
+```r
+file_link &lt;- "./data/example_interview.docx"
+
+sections_text &lt;- textreadr::read_docx(file_link)
+
+head(sections_text)
+```
+
+```
+## [1] "Interview transcript Interviewee I -C"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+## [2] "C runs a bit late. We introduce each other on first name basis in Danish. He is a bit in a hurry, just came from a meeting and has another meeting to go to. He tells me about what he knows this interview is about. This is very precise. I tell him about the background of this interview anyhow including its confidentiality."                                                                                                                                                                                                                                       
+## [3] "His area of responsibility is finance, financial reporting, costs, sales and analysis of this on group level and communicating these to the local entities. He tries to understand what the local entities mean by their reports and communicates these findings to managers and then on to Danaher."                                                                                                                                                                                                                                                                      
+## [4] "Q:[5:56] so, if you say local entities you mean like uhm all your subsidiaries you have? [ja] [ja] That’s quite a lot of countries [ja]."                                                                                                                                                                                                                                                                                                                                                                                                                                  
+## [5] "A:I also have in my team the responsibility of preparing all financial reporting for the European entities [hmhm]. So, for Europe we have made a chat-service [hmhm] function here in Denmark [hmhm] for all the European entities. So, they have .. next to know financial recourses [hmhm] and that goes both for the production and sales entities [ja] with the Polish entity as the only exception [hmhm] [so far] Nja, it’s newly acquired and we don’t want to move tasks from a cheap labor area to a very expensive labor area [ja] so uhm that’s the reason why."
+## [6] "Q:When you say like you’re in contact with these entities is this mostly by ..ja by Internet, by videoconferences, by phone, in person?"
+```
+
+---
+
+# Text data wrangling (1)
+
+
+```r
+text_df &lt;- as.data.frame(sections_text) %&gt;% 
+  dplyr::mutate(sections_number = row_number()) %&gt;% 
+  dplyr::mutate(sections_type = dplyr::case_when(
+    str_detect(sections_text, "Q:") ~ "interview_q",
+    str_detect(sections_text, "A:") ~ "interview_a",
+    TRUE ~ "metadata"
+  ))
+
+text_df %&gt;% dplyr::select(-sections_text) %&gt;% head()
+```
+
+```
+##   sections_number sections_type
+## 1               1      metadata
+## 2               2      metadata
+## 3               3      metadata
+## 4               4   interview_q
+## 5               5   interview_a
+## 6               6   interview_q
+```
+
+---
+
+# Text data wrangling (2)
+
+
+```r
+text_df &lt;- text_df %&gt;% 
+  dplyr::filter(sections_type == "interview_a") %&gt;% 
+  tidytext::unnest_tokens(
+    output = sections_sentence, 
+    input = sections_text, 
+    token = "sentences", 
+    to_lower = FALSE) %&gt;% 
+  dplyr::mutate(sections_sentence = 
+    stringr::str_remove_all(sections_sentence, "Q:|A:")) %&gt;% 
+  dplyr::mutate(sections_sentence = 
+    stringr::str_remove_all(sections_sentence, "\\[.*?\\]|\\[|\\]")) %&gt;% 
+  dplyr::mutate(sentence_number = row_number())
+```
+
+---
+
+# Text data wrangling (3)
+
+
+```r
+text_df &lt;- text_df %&gt;%
+  tidytext::unnest_tokens(
+    output = word, 
+    input = sections_sentence, 
+    token = "words", 
+    drop = FALSE) %&gt;% 
+  dplyr::anti_join(stop_words, by = "word")
+
+text_df %&gt;% dplyr::select(-sections_number, -sections_sentence) %&gt;% head()
+```
+
+```
+##   sections_type sentence_number           word
+## 1   interview_a               1           team
+## 2   interview_a               1 responsibility
+## 3   interview_a               1      preparing
+## 4   interview_a               1      financial
+## 5   interview_a               1      reporting
+## 6   interview_a               1       european
+```
+
+---
+
+# Most frequent words
+
+
+```r
+text_df %&gt;% 
+  dplyr::group_by(word) %&gt;% 
+  dplyr::summarise(n = n()) %&gt;%
+  dplyr::arrange(desc(n)) %&gt;%
+  dplyr::top_n(20,wt = n) %&gt;% 
+  dplyr::mutate(word = fct_reorder(word,n)) %&gt;%
+  ggplot(aes(word, n)) +
+  geom_col() +
+  coord_flip()
+```
+
+![](RSC_6_processing_text_files/figure-html/unnamed-chunk-8-1.png)&lt;!-- --&gt;
+
+---
+
+# Sentiment Analysis
+
+One way to analyze the sentiment of a text is to consider the text as a combination of its individual words and the sentiment content of the whole text as the sum of the sentiment content of the individual words. This isn’t the only way to approach sentiment analysis, but it is an often-used approach, and an approach that naturally takes advantage of the tidy tool ecosystem.
+
+
+```r
+library(tidytext)
+sentiments
+```
+
+```
+## # A tibble: 27,314 x 4
+##    word        sentiment lexicon score
+##    &lt;chr&gt;       &lt;chr&gt;     &lt;chr&gt;   &lt;int&gt;
+##  1 abacus      trust     nrc        NA
+##  2 abandon     fear      nrc        NA
+##  3 abandon     negative  nrc        NA
+##  4 abandon     sadness   nrc        NA
+##  5 abandoned   anger     nrc        NA
+##  6 abandoned   fear      nrc        NA
+##  7 abandoned   negative  nrc        NA
+##  8 abandoned   sadness   nrc        NA
+##  9 abandonment anger     nrc        NA
+## 10 abandonment fear      nrc        NA
+## # ... with 27,304 more rows
+```
+
+---
+
+# Sentiment Lexicon
+
+The three general-purpose lexicons are:
+
+* `AFINN` from [Finn Årup Nielsen](http://www2.imm.dtu.dk/pubdb/views/publication_details.php?id=6010)
+* `bing` from [Bing Liu and collaborators](https://www.cs.uic.edu/~liub/FBS/sentiment-analysis.html)
+* `nrc` from [Saif Mohammad and Peter Turney](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm)
+
+All three of these lexicons are based on unigrams, i.e., single words. These lexicons contain many English words and the words are assigned scores for positive/negative sentiment, and also possibly emotions like joy, anger, sadness, and so forth. 
+
+* The `nrc` lexicon categorizes words in a binary fashion (“yes”/“no”) into categories of positive, negative, anger, anticipation, disgust, fear, joy, sadness, surprise, and trust. 
+
+* The `bing` lexicon categorizes words in a binary fashion into positive and negative categories. 
+
+* The `AFINN` lexicon assigns words with a score that runs between -5 and 5, with negative scores indicating negative sentiment and positive scores indicating positive sentiment. 
+
+---
+
+# Sentiment Evolution
+
+
+```r
+afinn_sentiments &lt;- tidytext::get_sentiments("afinn")
+
+text_df %&gt;% 
+  dplyr::inner_join(afinn_sentiments) %&gt;% 
+  dplyr::group_by(sections_number, sentence_number) %&gt;%
+  dplyr::summarise(avg_score = mean(score)) %&gt;% 
+  ggplot(aes(x=sentence_number,y=avg_score)) + 
+  geom_line() +
+  geom_smooth()
+```
+
+---
+
+# Sentiment Evolution
+
+![](RSC_6_processing_text_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+
+---
+
+# References
+
+Text Mining with R A Tidy Approach https://www.tidytextmining.com/
+
+---
+class: center, middle
+
+# Thank you for your attention
+don't hesitate to send me an email: damien.dupre@dcu.ie
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

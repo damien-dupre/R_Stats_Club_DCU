@@ -1,0 +1,259 @@
+---
+title: "R Stats Club"
+subtitle: "Processing Text"
+author: "Damien DUPRE"
+date: "01/05/2019"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, scipen = 999)
+
+knitr::opts_chunk$set(
+  cache.extra = knitr::rand_seed,
+  message = FALSE, 
+  warning = FALSE, 
+  error = FALSE,
+  eval = FALSE)
+
+library(tidyverse)
+```
+
+# Audio File Transciption
+
+In order to analyse an interview, a transcription from speech-to-text has to be perfomed.
+
+Many methods can be used:
+1. Manual Transcription: high accuracy but highly time consuming (e.g., 1h audio needs around 5h of manual transciption)
+2. Local Automatic Transcription with a software: fast but costly solution (e.g. Dragon NaturallySpeaking Home for $150)
+3. Web Automatic Transcription with https://translate.google.com/: free but not optimal
+4. Web Automatic Transcription with Google Speech API
+
+---
+
+# Using Google Speech API from R
+
+Requirement: Having a Google Cloud account and download authentification json file
+
+See https://cran.r-project.org/web/packages/googleLanguageR/vignettes/setup.html and https://flaviocopes.com/google-api-authentication/ for more explanations
+
+Then
+
+```{r}
+install.packages("googleLanguageR")
+
+library(googleLanguageR)
+
+googleLanguageR::gl_auth("./link/to/your/authentication_file.json")
+```
+
+---
+
+# Using Google Speech API from R
+
+Example
+
+```{r}
+test_audio <- system.file(
+  "woman1_wb.wav", 
+  package = "googleLanguageR"
+  )
+
+async <- googleLanguageR::gl_speech(
+  audio_source = test_audio, 
+  asynch = TRUE, # asynch = TRUE used for long audio files
+  languageCode = "en-GB"
+  ) 
+
+result <- gl_speech_op(async)
+
+text <- result$transcript
+```
+
+---
+
+# Text Mining
+
+Once the text is obtained, it is time for some data wrangling
+
+The packages needed:
+
+```{r eval = TRUE}
+library(textreadr) # install.packages("textreadr")
+library(tidyverse) # install.packages("tidyverse")
+library(tidytext) # install.packages("tidytext")
+```
+
+---
+
+# Read docx document
+
+```{r eval = TRUE}
+file_link <- "./data/example_interview.docx"
+
+sections_text <- textreadr::read_docx(file_link)
+
+head(sections_text)
+```
+
+---
+
+# Text data wrangling (1)
+
+```{r eval = TRUE}
+text_df <- as.data.frame(sections_text) %>% 
+  dplyr::mutate(sections_number = row_number()) %>% 
+  dplyr::mutate(sections_type = dplyr::case_when(
+    str_detect(sections_text, "Q:") ~ "interview_q",
+    str_detect(sections_text, "A:") ~ "interview_a",
+    TRUE ~ "metadata"
+  ))
+
+text_df %>% dplyr::select(-sections_text) %>% head()
+```
+
+---
+
+# Text data wrangling (2)
+
+```{r eval = TRUE}
+text_df <- text_df %>% 
+  dplyr::filter(sections_type == "interview_a") %>% 
+  tidytext::unnest_tokens(
+    output = sections_sentence, 
+    input = sections_text, 
+    token = "sentences", 
+    to_lower = FALSE) %>% 
+  dplyr::mutate(sections_sentence = 
+    stringr::str_remove_all(sections_sentence, "Q:|A:")) %>% 
+  dplyr::mutate(sections_sentence = 
+    stringr::str_remove_all(sections_sentence, "\\[.*?\\]|\\[|\\]")) %>% 
+  dplyr::mutate(sentence_number = row_number())
+```
+
+---
+
+# Text data wrangling (3)
+
+```{r eval = TRUE}
+text_df <- text_df %>%
+  tidytext::unnest_tokens(
+    output = word, 
+    input = sections_sentence, 
+    token = "words", 
+    drop = FALSE) %>% 
+  dplyr::anti_join(stop_words, by = "word")
+
+text_df %>% dplyr::select(-sections_number, -sections_sentence) %>% head()
+```
+
+---
+
+# Most frequent words
+
+```{r}
+text_df %>% 
+  dplyr::group_by(word) %>% 
+  dplyr::summarise(n = n()) %>%
+  dplyr::arrange(desc(n)) %>%
+  dplyr::top_n(20,wt = n) %>% 
+  dplyr::mutate(word = fct_reorder(word,n)) %>%
+  ggplot(aes(word, n)) +
+  geom_col() +
+  coord_flip()
+```
+
+---
+
+# Most frequent words
+
+```{r eval = TRUE, echo = FALSE}
+text_df %>% 
+  dplyr::group_by(word) %>% 
+  dplyr::summarise(n = n()) %>%
+  dplyr::arrange(desc(n)) %>%
+  dplyr::top_n(20,wt = n) %>% 
+  dplyr::mutate(word = fct_reorder(word,n)) %>%
+  ggplot(aes(word, n)) +
+  geom_col() +
+  coord_flip()
+```
+
+---
+
+# Sentiment Analysis
+
+One way to analyze the sentiment of a text is to consider the text as a combination of its individual words and the sentiment content of the whole text as the sum of the sentiment content of the individual words. This isn’t the only way to approach sentiment analysis, but it is an often-used approach, and an approach that naturally takes advantage of the tidy tool ecosystem.
+
+```{r eval = TRUE}
+library(tidytext)
+sentiments
+```
+
+---
+
+# Sentiment Lexicon
+
+The three general-purpose lexicons are:
+
+* `AFINN` from [Finn Årup Nielsen](http://www2.imm.dtu.dk/pubdb/views/publication_details.php?id=6010)
+* `bing` from [Bing Liu and collaborators](https://www.cs.uic.edu/~liub/FBS/sentiment-analysis.html)
+* `nrc` from [Saif Mohammad and Peter Turney](http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm)
+
+All three of these lexicons are based on unigrams, i.e., single words. These lexicons contain many English words and the words are assigned scores for positive/negative sentiment, and also possibly emotions like joy, anger, sadness, and so forth. 
+
+* The `nrc` lexicon categorizes words in a binary fashion (“yes”/“no”) into categories of positive, negative, anger, anticipation, disgust, fear, joy, sadness, surprise, and trust. 
+
+* The `bing` lexicon categorizes words in a binary fashion into positive and negative categories. 
+
+* The `AFINN` lexicon assigns words with a score that runs between -5 and 5, with negative scores indicating negative sentiment and positive scores indicating positive sentiment. 
+
+---
+
+# Sentiment Evolution
+
+```{r}
+afinn_sentiments <- tidytext::get_sentiments("afinn")
+
+text_df %>% 
+  dplyr::inner_join(afinn_sentiments) %>% 
+  dplyr::group_by(sections_number, sentence_number) %>%
+  dplyr::summarise(avg_score = mean(score)) %>% 
+  ggplot(aes(x=sentence_number,y=avg_score)) + 
+  geom_line() +
+  geom_smooth()
+```
+
+---
+
+# Sentiment Evolution
+
+```{r eval = TRUE, echo=FALSE}
+afinn_sentiments <- tidytext::get_sentiments("afinn")
+
+text_df %>% 
+  dplyr::inner_join(afinn_sentiments) %>% 
+  dplyr::group_by(sections_number, sentence_number) %>%
+  dplyr::summarise(avg_score = mean(score)) %>% 
+  ggplot(aes(x=sentence_number,y=avg_score)) + 
+  geom_line() +
+  geom_smooth()
+```
+
+---
+
+# References
+
+Text Mining with R A Tidy Approach https://www.tidytextmining.com/
+
+---
+class: center, middle
+
+# Thank you for your attention
+don't hesitate to send me an email: damien.dupre@dcu.ie
