@@ -1,0 +1,132 @@
+---
+title: "R Stats Club"
+subtitle: "Mokken Scale Analysis"
+author: "Damien DUPRE"
+date: "08/05/2019"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE, scipen = 999)
+
+knitr::opts_chunk$set(
+  cache.extra = knitr::rand_seed,
+  message = FALSE, 
+  warning = FALSE, 
+  error = FALSE,
+  eval = FALSE)
+
+library(tidyverse)
+```
+
+# Mokken Scale Analysis in R
+
+Mokken scale analysis (MSA) is a scaling procedure for both dichotomous and polytomous
+items. 
+
+MSA is a scaling technique for ordinal data and mainly used for scaling test and questionnaire data.
+
+It consists of an item selection algorithm to partition a set of items into
+Mokken scales and several methods to check the assumptions of two nonparametric item
+response theory models: the monotone homogeneity model and the double monotonicity
+model.
+
+This method aims to find robust and unidimensional scales in sets of items, in a search
+procedure initialised by taking the highest associated pairs of items, and continuing by
+subsequent gradual inclusion of well-fitting items until a scale has been formed that does
+not improve further when other items are added.
+
+```{r}
+# install.packages("mokken")
+
+library(mokken)
+```
+
+---
+
+# Important Functions in mokken
+
+* coefH(data): Scalability coefficients
+* aisp(data): Scale partitioning
+* check.iio(data), check.pmatrix(data), check.restscore(data), check.monotonicity(data): Assumption checks
+---
+
+# Example
+
+MSA was performed on Adjective Checklist (Gough and Heilbrun 1980) data, acl, which are available in mokken. 
+
+The data (Vorst 1992) contain the scores of 433 students from the University of Amsterdam on 218 items from a Dutch version of the Adjective Checklist. 
+
+Each item is an adjective with five ordered answer categories (0 = completely disagree, 1 = disagree, 2 = neither agree nor disagree, 3 = agree, 4 = completely agree). 
+
+Form each adjective, the respondents must consider to what degree it describes their personality, and mark the answer category that fits best to this description.
+
+```{r}
+data(acl)
+```
+
+---
+
+# Scalability Coefficients
+
+If H = 1, the you have a perfect scale.
+
+Rules of thumb:
+* If H < .3 the items are unscalable.
+* If .3 < H < .4, a scale is weakly scalable.
+* If .4 < H < .5, a scale is moderately scalable.
+* If .5 < H, a scale is strongly scaleable.
+
+```{r}
+acl.com <- acl[,1:10]
+
+acl.com
+
+coefH(acl.com)
+```
+
+---
+
+# Algorithm for the automated Item Selection Procedure or AISP
+
+There are 2 that have been implemented in mokken using the default lower bound c = .3 results in two Mokken scales:
+* Hierarchical clustering algorithm:
+    - Starts by takeing 2 items having largest value of Hij
+(significantly different from 0).
+    - Items adding that meet criteria until no more can be added.
+    - Takes unselected items and starts another Mokken scale
+    - Continues until no more scales can be created.
+* Genetic algorithm
+
+```{r}
+aisp(acl.com)
+aisp(acl.com, search="ga")
+```
+
+---
+
+# References
+
+Mokken Scale Analysis in R - Journal of Statistical Software
+https://www.jstatsoft.org/article/view/v020i11/v20i11.pdf
+
+New Developments in Mokken Scale Analysis in R 
+https://www.jstatsoft.org/index.php/jss/article/view/v048i05/v48i05.pdf
+
+Homepage Andries van der Ark
+https://sites.google.com/a/tilburguniversity.edu/avdrark/mokken
+
+Item Response Theory in R
+http://statmath.wu.ac.at/people/trusch/IMPS2017/Exercises/solutions/Exercise_05.html
+
+---
+class: center, middle
+
+# Thank you for your attention
+don't hesitate to send me an email: damien.dupre@dcu.ie
